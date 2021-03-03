@@ -64,9 +64,8 @@ int main(int argc, char* argv[])
 
   while ( true )
     {
-      //Command prompt
+      // Show prompt.
       cout << get_current_dir_name () << "$ " ;
-
       char command[128];
       vector<string> his;
       char extension[10],cmd[50];
@@ -81,11 +80,61 @@ int main(int argc, char* argv[])
 	}
       
       char** argv = new char*[args.size()+1];
-   //   cout << argv[0];
+      cout << argv[0];
    
-   /////////////////////////////////////////////////////////////////////
-   //Command - cp (copy)
+   	/////////////////////////////////////////////////////////////////////
+	
+       else if(strcmp(command, "pwd") == 0) {
+         
+          std::string GetCurrentWorkingDir( void ) {
+          char buff[FILENAME_MAX];
+		  GetCurrentDir( buff, FILENAME_MAX );
+		  std::string current_working_dir(buff);
+		  return current_working_dir;
+		  cout << GetCurrentWorkingDir() << std::endl;
+      }
+   
+    /////////////////////////////////////////////////////////////////////
+	
+       else if(strcmp(command, "mv") == 0) {
+         
+          char src[50],dest[50],cmd[100];
+		  cout<<"\nEnter full path of file to be moved : ";
+		  gets(src);
+		  cout<<"Enter full path where file to be moved : ";
+		  gets(dest);
+		  strcpy(cmd,"mv ");
+		  strcat(cmd,src);
+		  strcat(cmd," ");
+		  strcat(cmd,dest);
+		  system(cmd);
+		  return 0;
+      }
+	  
+	/////////////////////////////////////////////////////////////////////
+	
+       else if(strcmp(command, "less") == 0) {
+         
+          template <typename A, typename B, 
+		  typename U = std::less<int> > 
+		
+          bool f(A a, B b, U u = U()) 
+          { 
+	         return u(a, b); 
+           } 
+		  
+		  int X = 1, Y = 2; 
+	      cout << std::boolalpha; 
+	      cout << f(X, Y) << '\n'; 
+	      X = 2, Y = -1; 
+	      cout << f(X, Y) << '\n'; 
 
+	      return 0; 
+      }
+     
+	    
+   /////////////////////////////////////////////////////////////////////
+   
       if(strcmp(command, "cp") == 0){
          int read_fd;
          int write_fd;
@@ -102,8 +151,7 @@ int main(int argc, char* argv[])
       }
 	  
 	/////////////////////////////////////////////////////////////////////
-	//Command - rm (remove files)
-
+	
        else if(strcmp(command, "rm") == 0) {
          
           cout<<"\nENTER EXTENSION OF FILES : ";
@@ -113,10 +161,9 @@ int main(int argc, char* argv[])
           system(command);
           his.push_back(command);
       }
-	  
+	 
 	/////////////////////////////////////////////////////////////////////
-	//Command - makedir (create a directory)
-
+	
       else if(strcmp(command, "mkdir") == 0) {
             int check;
            char dirname[50];
@@ -134,17 +181,7 @@ int main(int argc, char* argv[])
       }
 
     ////////////////////////////////////////////////////////////
-	  //Command - history
-
-      else if(strcmp(command,"history")==0){
-        for(int i=0;i<his.size();i++)
-           cout<<his[i]<<endl;
-        cout<<endl;
-      }
-    
-    ////////////////////////////////////////////////////////////
-	  //Command - sort
-
+	
       if(strcmp(command, "sort") == 0) {
           int arr[50];
           int num, i;
@@ -168,13 +205,16 @@ int main(int argc, char* argv[])
           std::cout << '\n';
           his.push_back(command);
           
-      }
+      } 
       
         FILE *f = NULL;
         std::string wccmd;
         std::string filename("main.cpp");   // keep appropriate file name
         int n = 0;
         std::string file;
+		
+	//////////////////////////////////////////////////////////////////////////////
+		
         if(strcmp(command, "wc") == 0) {
             wccmd = "wc -l " + filename;
             f = popen(wccmd.c_str(), "r");
@@ -182,11 +222,31 @@ int main(int argc, char* argv[])
             pclose(f);
             std::cout << "Number of lines: " << n << '\n';
             his.push_back(command);   
-        }
+        } 
+		
+	/////////////////////////////////////////////////////////////////////
+	
+       else if(strcmp(command, "cat") == 0) {
+         
+          using FilePtr = std::unique_ptr<FILE, decltype(&::pclose)>;
+		  std::string cmd("/bin/cat ");
+		  cmd.append(path);
+
+		  FilePtr ls(::popen(cmd.c_str(), "r"), ::pclose);
+	      if (ls == nullptr)
+			return std::string();
+
+		  std::vector<char> buf(1024);
+		  std::string ret;
+		  while (::fgets(buf.data(), buf.size(), ls.get()))
+			ret.append(buf.data());
+
+		  return ret;
+      }
+   
     
     /////////////////////////////////////////////////////////////////////
-	  //Command - grep
-
+	
         if(strcmp(command,"grep") == 0) {
             char fn[10], pat[10], temp[200];
             FILE *fp;
@@ -203,10 +263,33 @@ int main(int argc, char* argv[])
             }
             fclose(fp);
             his.push_back(command);
-        }    
+        }
+
+    //////////////////////////////////////////////////////////////////////////////
+		
+        if(strcmp(command, "chmod") == 0) {
+            int result = _chmod(path, (mode & MS_MODE_MASK));
+
+             if (result != 0){
+				result = errno;
+                  }
+
+			return (result);
+		else
+            static inline int my_chmod(const char * path, mode_t mode)
+		}
+    int result = chmod(path, mode);
+
+    if (result != 0)
+    {
+        result = errno;
+    }
+
+    return (result);  
+        } 
+				
 		
     //////////////////////////////////////////////////////////////////////
-    //Command - head
 	
         if(strcmp(command, "head") == 0) {
             ifstream file; 
@@ -238,6 +321,33 @@ int main(int argc, char* argv[])
         	cin.get(word, 250);
           his.push_back(command);
         }
+
+    //////////////////////////////////////////////////////////////////////////////
+		
+        if(strcmp(command, "tail") == 0) {
+            void tail(FILE* in, int n) { 
+				int count = 0; 
+				unsigned long long pos; 
+				char str[2*SIZE]; 
+
+			if (fseek(in, 0, SEEK_END)) 
+				perror("fseek() failed"); 
+			
+			else{ 
+				pos = ftell(in); 
+				while (pos) { 
+					if (!fseek(in, --pos, SEEK_SET)) { 
+						if (fgetc(in) == '\n') 
+							if (count++ == n) 
+								break; } 
+					else
+						perror("fseek() failed"); } 
+			printf("Printing last %d lines -\n", n); 
+			while (fgets(str, sizeof(str), in)) 
+			printf("%s", str); } 
+			printf("\n\n"); }    
+        } 
+				
 		
 	///////////////////////////////////////////////////////////////////////////
         
