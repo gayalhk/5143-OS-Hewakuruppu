@@ -20,7 +20,7 @@ except socket.error as e:
 
 Response = ClientSocket.recv(1024)
 while True:
-    consumer = {'type':"consumer",'id':cid ,'stock':" "}
+    consumer = {'type':"consumer",'id':cid ,'stock':" ",'price':0}
     data = json.dumps(consumer)
     ClientSocket.send(str.encode(data))
     time.sleep(2)
