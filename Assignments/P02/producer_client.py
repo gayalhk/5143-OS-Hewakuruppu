@@ -30,6 +30,6 @@ while True:
     ClientSocket.send(str.encode(data))
     time.sleep(1)
     Response = ClientSocket.recv(1024)
-    print(Response.decode('utf-8'))
+    print(Response.decode('utf-8'),flush=True)
 
 ClientSocket.close()
