@@ -7,10 +7,11 @@ import os
 from _thread import *
 import queue
 import json 
-import time 
+import time
+from queue import Queue
 
-items = []
-itemsP=[]
+stockName = Queue(maxsize = 15)
+stockPrice = Queue(maxsize = 15)
 
 ServerSocket = socket.socket()
 host = '167.99.224.154'
@@ -31,26 +32,32 @@ def threaded_client(connection):
         data = connection.recv(2048)
         data = data.decode('utf-8')
         data = json.loads(data)
+
         if data['type']=="producer":
-            items.append(data['stock'])
-            itemsP.append(data['price'])
-            print(data['type']+" "+str(data['id'])+" produced stock "+data['stock']+" for $ "
-            +str(data['price']))
+
+            if stockName.full()==True:
+                reply = "Production Unsuccessful"
+
+            else:
+                stockName.put(data['stock'])
+                stockPrice.put(data['price'])
+                print(data['type']+" "+str(data['id'])+" produced stock "+data['stock']+" for $ "
+                +str(data['price']))
+                reply = "Production Successful"
+            
         
         elif data['type']=="consumer":
-            Stock = items[-1]
-            Price = itemsP[-1]
-            data['stock']=Stock
-            data['price']=Price
-            items.remove(Stock)
-            itemsP.remove(Price)
-            print(data['type']+" "+str(data['id'])+" bought stock "+data['stock']+" at $"
-            +str(data['price']))
 
-        #items.append(data)
-        #print(len(items))
-        reply = "Server Says: " #+ data['id']
-        #reply = items[-1]
+            if stockName.empty()==True:
+                reply = "Consumption Unsuccessful"
+
+            else:
+                data['stock']=stockName.get()
+                data['price']=stockPrice.get()
+                print(data['type']+" "+str(data['id'])+" bought stock "+data['stock']+" at $"
+                +str(data['price']))
+                reply = "Consumption Successful"
+
         if not data:
           break
         connection.sendall(str.encode(reply))
