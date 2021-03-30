@@ -6,6 +6,7 @@ import socket
 import random
 import time 
 import json
+import sys
 
 cid = random.randint(1,100)
 ClientSocket = socket.socket()
@@ -25,6 +26,6 @@ while True:
     ClientSocket.send(str.encode(data))
     time.sleep(2)
     Response = ClientSocket.recv(1024)
-    print(Response.decode('utf-8'))
+    print(Response.decode('utf-8'),flush=True)
 
 ClientSocket.close()
